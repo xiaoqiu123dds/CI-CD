@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-package:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Verify UTF-8 encoding gate
+        shell: pwsh
+        run: ./scripts/check_encoding.ps1 -Root .
+
+      - name: Restore solution
+        run: dotnet restore PrismReactiveDemo.Sample.sln
+
+      - name: Build solution
+        run: dotnet build PrismReactiveDemo.Sample.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      - name: Run unit tests
+        run: dotnet test PrismReactiveDemo.Sample.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory artifacts/test-results
+
+      - name: Package desktop artifact
+        shell: pwsh
+        run: ./scripts/package_release.ps1 -ProjectPath ./src/PrismReactiveDemo/PrismReactiveDemo.csproj -Version ci-${{ github.run_number }} -Runtime win-x64 -SkipRestore
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: artifacts/test-results
+
+      - name: Upload desktop package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-package
+          path: artifacts/releases

@@ -1,0 +1,27 @@
+﻿<presentation:PrismReactiveView x:Class="PrismReactiveDemo.Modules.Dialogs.Views.InfoDialogView"
+                               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                               xmlns:presentation="clr-namespace:PrismReactiveDemo.Presentation.Core"
+                               xmlns:vm="clr-namespace:PrismReactiveDemo.Modules.Dialogs.ViewModels"
+                               x:TypeArguments="vm:InfoDialogViewModel">
+    <Grid MinWidth="420" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="22"
+                   FontWeight="Bold"
+                   Text="{Binding DialogTitle}" />
+        <TextBlock Grid.Row="1"
+                   Margin="0,14,0,14"
+                   TextWrapping="Wrap"
+                   Text="{Binding Message}" />
+        <Button x:Name="CloseButton"
+                Grid.Row="2"
+                Width="100"
+                HorizontalAlignment="Right"
+                Content="我知道了" />
+    </Grid>
+</presentation:PrismReactiveView>

@@ -1,0 +1,73 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version tag, for example v1.0.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve release version
+        id: version
+        shell: pwsh
+        run: |
+          $manualVersion = '${{ inputs.version }}'
+          $version = if ($manualVersion) { $manualVersion } else { '${{ github.ref_name }}' }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Verify UTF-8 encoding gate
+        shell: pwsh
+        run: ./scripts/check_encoding.ps1 -Root .
+
+      - name: Restore solution
+        run: dotnet restore PrismReactiveDemo.Sample.sln
+
+      - name: Build solution
+        run: dotnet build PrismReactiveDemo.Sample.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      - name: Run unit tests
+        run: dotnet test PrismReactiveDemo.Sample.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory artifacts/test-results
+
+      - name: Package release bundle
+        shell: pwsh
+        run: ./scripts/package_release.ps1 -ProjectPath ./src/PrismReactiveDemo/PrismReactiveDemo.csproj -Version ${{ steps.version.outputs.version }} -Runtime win-x64 -SkipRestore
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            artifacts/releases/*.zip
+            artifacts/releases/*.sha256

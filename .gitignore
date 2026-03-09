@@ -1,0 +1,8 @@
+.vs/
+.nuget/
+artifacts/
+bin/
+obj/
+TestResults/
+*.suo
+*.user
