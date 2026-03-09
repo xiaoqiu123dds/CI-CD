@@ -4,5 +4,7 @@ artifacts/
 bin/
 obj/
 TestResults/
+.tmp-codex-types-20260307/
+tmp_dynamic_model_dropdown.tsx
 *.suo
 *.user

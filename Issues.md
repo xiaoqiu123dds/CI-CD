@@ -1,5 +1,10 @@
 ﻿# Issues
 
+## 2026-03-09 - 补充本地临时文件忽略规则 / Added Ignore Rules for Local Temporary Files
+
+- **问题 / Issue**：首次初始化 Git 仓库时，发现 `.tmp-codex-types-20260307/` 与 `tmp_dynamic_model_dropdown.tsx` 这类本地临时文件会进入未跟踪状态，容易污染后续提交。 During the initial Git repository setup, local temporary files such as `.tmp-codex-types-20260307/` and `tmp_dynamic_model_dropdown.tsx` appeared as untracked items and could pollute future commits.
+- **处理 / Resolution**：将上述临时目录与临时文件加入 `.gitignore`，避免它们再次进入暂存区或误推送到远程仓库。 Added the temporary directory and file to `.gitignore` so they will not be staged or pushed accidentally again.
+- **结果 / Result**：当前仓库的后续 `git status` 将更聚焦于正式源码与文档变更，提交流程更干净。 Future `git status` output will stay focused on real source and documentation changes, making commits cleaner.
 ## 2026-03-08 - 建立首版 GitHub Actions CI/CD 流水线 / Established the Initial GitHub Actions CI/CD Pipeline
 
 - **问题 / Issue**：仓库已有编码门禁与可编译的 `WPF` 示例，但此前缺少自动化测试、持续集成工作流、统一打包脚本和可重复的发布链路。 The repository already had an encoding gate and a compilable `WPF` sample, but it previously lacked automated tests, CI workflows, a unified packaging script, and a repeatable release path.
@@ -69,4 +74,5 @@
 - 影响 / Impact：如果直接在此基础上扩展项目，容易产生双重生命周期、重复释放、导航与对话模型混杂、以及事件通道失控的问题。 If a project expands directly on top of this draft, it can easily introduce dual lifecycles, double-disposal, mixed navigation/dialog models, and uncontrolled event channels.
 - 处理 / Resolution：新增深度说明文档 `docs/prism-reactiveui-deep-integration.md` 与构建计划 `docs/implementation-plan-b.md`，并补充仓库入口说明与编码检查脚本。 Added the deep integration guide `docs/prism-reactiveui-deep-integration.md`, the build plan `docs/implementation-plan-b.md`, plus repository entry documentation and an encoding check script.
 - 结果 / Result：后续 `B` 方案项目应以“Prism 管组合、ReactiveUI 管状态”的单一权威模型推进。 Future option `B` projects should proceed with the single-authority model of “Prism manages composition, ReactiveUI manages state”.
+
 
